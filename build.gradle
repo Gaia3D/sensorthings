@@ -1,0 +1,94 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'war'
+}
+
+group = 'com.gaia3d'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '16'
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+// gradle build -Pprofile=product (develop, test, local)
+final String DEFAULT_PROFILE = 'local'
+
+configurations {
+    developmentOnly
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        resources {
+
+            if (!project.hasProperty('profile') || !profile) {
+                println "========== > default profile is local."
+                ext.profile = DEFAULT_PROFILE
+            }
+
+            if (profile == 'product') {
+                println " ===========> profile file is ${profile}"
+                println " ===========> copy from src/main/resources/product to src/main/resources"
+
+                copy {
+                    from("src/main/resources/product") {
+                        include 'application.properties'
+                        include 'lhdt.properties'
+                        include 'logback-spring.xml'
+                    }
+                    into "src/main/resources"
+                }
+                exclude "**/develop/*"
+            } else if (profile == 'develop') {
+                println " ===========> profile file is ${profile}"
+                println " ===========> copy from src/main/resources/develop to src/main/resources"
+
+                copy {
+                    from("src/main/resources/develop") {
+                        include 'application.properties'
+                        include 'lhdt.properties'
+                        include 'logback-spring.xml'
+                    }
+                    into "src/main/resources"
+                }
+                exclude "**/product/*"
+            } else {
+                println " ===========> profile file is ${profile}"
+                //srcDir "src/main/resources"
+                exclude "**/product/*"
+                exclude "**/develop/*"
+            }
+
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'de.fraunhofer.iosb.ilt:FROST-Client:0.34'
+    implementation 'com.opencsv:opencsv:5.4'
+}
+
+test {
+    useJUnitPlatform()
+}
