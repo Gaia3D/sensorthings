@@ -14,6 +14,11 @@ public class PropertiesConfig {
     @Value("${sensorthings.profile}")
     private Profile profile;
 
+    @Value("${airkorea.service.url}")
+    private String airkoreaServiceUrl;
+    @Value("${airkorea.auth.key}")
+    private String airkoreaAuthKey;
+
     @Value("${geoserver.url}")
     private String geoserverUrl;
     @Value("${geoserver.user}")
