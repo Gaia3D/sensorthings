@@ -1,10 +1,13 @@
 package gaia3d.airquality.domain;
 
+import de.fraunhofer.iosb.ilt.sta.model.FeatureOfInterest;
 import de.fraunhofer.iosb.ilt.sta.model.Id;
 import de.fraunhofer.iosb.ilt.sta.model.Location;
 import de.fraunhofer.iosb.ilt.sta.model.Thing;
+import de.fraunhofer.iosb.ilt.sta.model.builder.FeatureOfInterestBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.LocationBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.ThingBuilder;
+import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractFeatureOfInterestBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractLocationBuilder;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +27,8 @@ import java.util.Map;
 @Builder
 public class Station {
 
-    public static final String STATION_DESCRIPTION = "대기질 측정소 위치";
+    public static final String LOCATION_DESCRIPTION = "대기질 측정소 위치";
+    public static final String FEATURE_OF_INTEREST_DESCRIPTION = "한국환경공단 대기질 측정소";
 
     // 측정소 명
     private String name;
@@ -38,6 +42,9 @@ public class Station {
     private Integer year;
     // 주소
     private String addr;
+
+    // Feature
+    private Feature feature;
 
     private Map<String, Object> toProperties() {
         Map<String, Object> resultMap = new HashMap<>();
@@ -61,16 +68,13 @@ public class Station {
         if (location != null) {
             locationId = location.getId();
         }
-        Feature feature = new Feature();
-        Point point = this.position.toPoint();
-        feature.setId(this.name);
-        feature.setGeometry(point);
+        createFeature();
         return LocationBuilder.builder()
                 .id(locationId)
                 .name(this.addr)
                 .encodingType(AbstractLocationBuilder.ValueCode.GeoJSON)
-                .description(STATION_DESCRIPTION)
-                .location(feature)
+                .description(LOCATION_DESCRIPTION)
+                .location(this.feature)
                 .build();
     }
 
@@ -86,6 +90,33 @@ public class Station {
                 .properties(toProperties())
                 .locations(locations)
                 .build();
+    }
+
+    public FeatureOfInterest toFeatureOfInterestEntity(FeatureOfInterest foi) {
+        Id foiId = null;
+        if (foi != null) {
+            foiId = foi.getId();
+        }
+
+        if (this.feature == null) {
+            createFeature();
+        }
+
+        return FeatureOfInterestBuilder.builder()
+                .id(foiId)
+                .name(this.name)
+                .description(FEATURE_OF_INTEREST_DESCRIPTION)
+                .encodingType(AbstractFeatureOfInterestBuilder.ValueCode.GeoJSON)
+                .feature(this.feature)
+                .build();
+    }
+
+    private void createFeature() {
+        Feature feature = new Feature();
+        Point point = this.position.toPoint();
+        feature.setId(this.name);
+        feature.setGeometry(point);
+        this.feature = feature;
     }
 
 }

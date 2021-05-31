@@ -1,8 +1,10 @@
 package gaia3d.airquality.domain;
 
+import de.fraunhofer.iosb.ilt.sta.model.FeatureOfInterest;
 import de.fraunhofer.iosb.ilt.sta.model.Id;
 import de.fraunhofer.iosb.ilt.sta.model.Location;
 import de.fraunhofer.iosb.ilt.sta.model.Thing;
+import de.fraunhofer.iosb.ilt.sta.model.builder.FeatureOfInterestBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.LocationBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.ThingBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.geojson.Feature;
 import org.geojson.LngLatAlt;
 import org.geojson.Point;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,12 +28,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class StationTest {
 
+    private Position position;
     private Station station;
     private Location location;
 
     @BeforeEach
     void setUp() {
-        Position position = new Position("126.975961", "37.564639");
+        position = new Position("126.975961", "37.564639");
         // given
         station = Station.builder()
                 .name("중구")
@@ -66,7 +70,7 @@ class StationTest {
         // then
         assertThat(actual.getId()).isEqualTo(expected);
         assertThat(actual.getName()).isEqualTo(station.getAddr());
-        assertThat(actual.getDescription()).isEqualTo(Station.STATION_DESCRIPTION);
+        assertThat(actual.getDescription()).isEqualTo(Station.LOCATION_DESCRIPTION);
 
         assertThat(feature.getId()).isEqualTo(station.getName());
         assertThat(point.getCoordinates()).isEqualTo(new LngLatAlt(126.975961, 37.564639, 0));
@@ -102,7 +106,7 @@ class StationTest {
         actual.getLocations().forEach(l -> {
             assertThat(l.getId()).isEqualTo(location.getId());
             assertThat(l.getName()).isEqualTo(station.getAddr());
-            assertThat(l.getDescription()).isEqualTo(Station.STATION_DESCRIPTION);
+            assertThat(l.getDescription()).isEqualTo(Station.LOCATION_DESCRIPTION);
 
             Feature feature = (Feature) l.getLocation();
             Point point = (Point) feature.getGeometry();
@@ -110,6 +114,33 @@ class StationTest {
             assertThat(feature.getId()).isEqualTo(station.getName());
             assertThat(point.getCoordinates()).isEqualTo(new LngLatAlt(126.975961, 37.564639, 0));
         });
+    }
+
+    private static Stream<Arguments> FeatureOfInterest가_없거나_있을_경우() {
+        // given
+        Id expected = Id.tryToParse("123456");
+        FeatureOfInterest featureOfInterest = FeatureOfInterestBuilder.builder().id(expected).build();
+        return Stream.of(
+                Arguments.of(null, null),       // 없을 경우
+                Arguments.of(featureOfInterest, expected)   // 있을 경우
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("FeatureOfInterest가_없거나_있을_경우")
+    void toFeatureOfInterestEntity(FeatureOfInterest featureOfInterest, Id expected) {
+        // given, when
+        FeatureOfInterest actual = station.toFeatureOfInterestEntity(featureOfInterest);
+        log.info("======= FeatureOfInterest : {}", actual);
+
+        Feature feature = new Feature();
+        Point point = position.toPoint();
+        feature.setId(station.getName());
+        feature.setGeometry(point);
+
+        // then
+        assertThat(actual.getId()).isEqualTo(expected);
+        assertThat(actual.getFeature()).isEqualTo(feature);
     }
 
 }
