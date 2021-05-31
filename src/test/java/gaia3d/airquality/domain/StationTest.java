@@ -16,10 +16,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
-import static gaia3d.airquality.domain.ObservedProperty.*;
+import static gaia3d.airquality.domain.Item.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
@@ -36,7 +35,7 @@ class StationTest {
         station = Station.builder()
                 .name("중구")
                 .position(position)
-                .observedProperties(List.of(SO2, CO, O3, NO2, PM10, PM25))
+                .items(List.of(SO2, CO, O3, NO2, PM10, PM25))
                 .networkName("도시대기")
                 .year(1995)
                 .addr("서울 중구 덕수궁길 15시청서소문별관 3동")

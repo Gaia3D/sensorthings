@@ -1,7 +1,7 @@
 package gaia3d.airkorea.dto;
 
 import gaia3d.airquality.domain.Position;
-import gaia3d.airquality.domain.ObservedProperty;
+import gaia3d.airquality.domain.Item;
 import gaia3d.airquality.domain.Station;
 import lombok.Data;
 
@@ -29,11 +29,11 @@ public class StationResponse {
 
         // build observedProperties
         String[] items = this.item.trim().split(PROPERTY_SPLIT_REGEX);
-        List<ObservedProperty> observedProperties = Arrays.stream(items)
+        List<Item> observedProperties = Arrays.stream(items)
                 .map(String::trim)
                 // PM2.5에서 .을 제거하여 enum PM25에 매핑
                 .map(item -> item.replace(".", ""))
-                .map(ObservedProperty::valueOf)
+                .map(Item::valueOf)
                 .collect(Collectors.toList());
 
         // build year
@@ -42,7 +42,7 @@ public class StationResponse {
         return Station.builder()
                 .name(this.stationName)
                 .position(position)
-                .observedProperties(observedProperties)
+                .items(observedProperties)
                 .networkName(this.mangName)
                 .year(year)
                 .addr(this.addr)

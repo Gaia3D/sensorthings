@@ -8,7 +8,6 @@ import de.fraunhofer.iosb.ilt.sta.model.builder.ThingBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractLocationBuilder;
 import lombok.Builder;
 import lombok.Data;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.geojson.Feature;
 import org.geojson.Point;
@@ -32,7 +31,7 @@ public class Station {
     // 위치
     private Position position;
     // 측정 항목
-    private List<ObservedProperty> observedProperties;
+    private List<Item> items;
     // 측정망 명
     private String networkName;
     // 설치년도
