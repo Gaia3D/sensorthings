@@ -26,4 +26,7 @@ public class PropertiesConfig {
     @Value("${geoserver.password}")
     private String geoserverPassword;
 
+    @Value("${frost.service.endpoint}")
+    private String frostServiceEndpoint;
+
 }

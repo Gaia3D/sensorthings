@@ -3,8 +3,6 @@ package gaia3d.airkorea.application;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gaia3d.airkorea.dto.AirKoreaHeader;
-import gaia3d.airkorea.dto.AirKoreaResponse;
 import gaia3d.airkorea.dto.AirKoreaResponseWrapper;
 import gaia3d.airkorea.dto.StationsResponse;
 import gaia3d.airquality.domain.Stations;
@@ -29,9 +27,9 @@ public class AirKoreaServiceOpenApi implements AirKoreaService {
     private final RestTemplate airkoreaRestTemplate;
     private final ObjectMapper objectMapper;
 
-    public AirKoreaServiceOpenApi(PropertiesConfig propertiesConfig, RestTemplate airkoreaRestTemplate, ObjectMapper objectMapper) {
+    public AirKoreaServiceOpenApi(PropertiesConfig propertiesConfig, RestTemplate restTemplate, ObjectMapper objectMapper) {
         this.propertiesConfig = propertiesConfig;
-        this.airkoreaRestTemplate = airkoreaRestTemplate;
+        this.airkoreaRestTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -57,20 +55,13 @@ public class AirKoreaServiceOpenApi implements AirKoreaService {
         try {
             Object body = Objects.requireNonNull(response.getBody());
             AirKoreaResponseWrapper<StationsResponse> airKoreaResponse = objectMapper.readValue(body.toString(), new TypeReference<>() {});
-            AirKoreaResponse<StationsResponse> airKoreaStationResponse = airKoreaResponse.getResponse();
-            log.info("====== header : {}", airKoreaStationResponse.getHeader().toString());
-            //log.info("====== body : {}", airKoreaStationResponse.getBody().toString());
-            AirKoreaHeader airKoreaHeader = airKoreaStationResponse.getHeader();
-            if (!airKoreaHeader.ok()) return null;
-            log.info("====== totalCnt : {}", airKoreaStationResponse.getBody().getTotalCount());
-            stations = airKoreaStationResponse.getBody().toStations();
-            log.info("====== stations : {}", stations.toString());
+            stations = airKoreaResponseToStations(airKoreaResponse);
+            if (stations == null) return null;
         } catch (JsonProcessingException e) {
             log.error("====== error message : {}", response.getBody());
             return null;
         }
         return stations;
     }
-
 
 }

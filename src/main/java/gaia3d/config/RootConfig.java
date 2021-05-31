@@ -9,15 +9,15 @@ import org.springframework.web.client.RestTemplate;
 public class RootConfig {
 
     @Bean
-    public RestTemplate airkoreaRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+    public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
         return restTemplateBuilder.build();
     }
 
-    @Bean
-    public RestTemplate geoserverRestTemplate(PropertiesConfig propertiesConfig, RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.rootUri("http://" + propertiesConfig.getGeoserverUrl() + "/geoserver/rest")
-                .basicAuthentication(propertiesConfig.getGeoserverUser(), propertiesConfig.getGeoserverPassword())
-                .build();
-    }
+//    @Bean
+//    public RestTemplate geoserverRestTemplate(PropertiesConfig propertiesConfig, RestTemplateBuilder restTemplateBuilder) {
+//        return restTemplateBuilder.rootUri("http://" + propertiesConfig.getGeoserverUrl() + "/geoserver/rest")
+//                .basicAuthentication(propertiesConfig.getGeoserverUser(), propertiesConfig.getGeoserverPassword())
+//                .build();
+//    }
 
 }

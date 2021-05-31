@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class AirKoreaHeader {
+
     private String resultMsg;
     private String resultCode;
 

@@ -1,6 +1,6 @@
 package gaia3d.airkorea.dto;
 
-import gaia3d.airquality.domain.Location;
+import gaia3d.airquality.domain.Position;
 import gaia3d.airquality.domain.ObservedProperty;
 import gaia3d.airquality.domain.Station;
 import lombok.Data;
@@ -13,40 +13,40 @@ import java.util.stream.Collectors;
 @Data
 public class StationResponse {
 
+    public static final String PROPERTY_SPLIT_REGEX = ",";
     private String dmX;
+    private String dmY;
     private String item;
     private String mangName;
     private String year;
     private String addr;
     private String stationName;
-    private String dmY;
 
 
     public Station toStation() {
 
-        Location location = Location.builder()
-                .longitude(Double.parseDouble(this.dmX))
-                .latitude(Double.parseDouble(this.dmY))
-                .build();
+        Position position = new Position(this.dmX, this.dmY);
 
-        String[] items = this.item.trim().split(",");
+        // build observedProperties
+        String[] items = this.item.trim().split(PROPERTY_SPLIT_REGEX);
         List<ObservedProperty> observedProperties = Arrays.stream(items)
                 .map(String::trim)
+                // PM2.5에서 .을 제거하여 enum PM25에 매핑
                 .map(item -> item.replace(".", ""))
                 .map(ObservedProperty::valueOf)
                 .collect(Collectors.toList());
 
-        Integer year = Optional.ofNullable(this.year)
-                .map(Integer::valueOf)
-                .orElse(null);
+        // build year
+        Integer year = Optional.ofNullable(this.year).map(Integer::valueOf).orElse(null);
 
         return Station.builder()
                 .name(this.stationName)
-                .location(location)
+                .position(position)
                 .observedProperties(observedProperties)
                 .networkName(this.mangName)
                 .year(year)
                 .addr(this.addr)
                 .build();
+
     }
 }
