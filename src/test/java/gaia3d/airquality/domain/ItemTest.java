@@ -21,7 +21,8 @@ class ItemTest {
                 new ObservedProperty("no2Value", "https://en.wikipedia.org/wiki/Nitrogen_dioxide", "이산화질소 Nitrogen_dioxide")
         };
         // when
-        Map<String, ObservedProperty> observedPropertyMap = Item.toObservedPropertiesByType(TimeUnit.HOUR);
+        ItemDetails itemDetails = Item.generateItemDetails();
+        Map<String, ObservedProperty> observedPropertyMap = Item.getObservedPropertiesByTimeUnit(itemDetails, TimeUnit.HOUR);
         // then
         assertThat(observedPropertyMap).containsValues(expected);
     }
@@ -38,7 +39,8 @@ class ItemTest {
                 new ObservedProperty("no2ValueDaily", "https://en.wikipedia.org/wiki/Nitrogen_dioxide", "이산화질소 Nitrogen_dioxide")
         };
         // when
-        Map<String, ObservedProperty> observedPropertyMap = Item.toObservedPropertiesByType(TimeUnit.DAILY);
+        ItemDetails itemDetails = Item.generateItemDetails();
+        Map<String, ObservedProperty> observedPropertyMap = Item.getObservedPropertiesByTimeUnit(itemDetails, TimeUnit.DAILY);
         // then
         assertThat(observedPropertyMap).containsValues(expected);
     }

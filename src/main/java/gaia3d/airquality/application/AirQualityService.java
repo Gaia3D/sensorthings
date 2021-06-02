@@ -1,26 +1,30 @@
 package gaia3d.airquality.application;
 
-import de.fraunhofer.iosb.ilt.sta.service.SensorThingsService;
-import gaia3d.config.PropertiesConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import gaia3d.airkorea.dto.AirKoreaHeader;
+import gaia3d.airkorea.dto.AirKoreaResponse;
+import gaia3d.airkorea.dto.AirKoreaResponseWrapper;
+import gaia3d.airkorea.dto.StationsResponse;
+import gaia3d.airquality.domain.Stations;
+import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+public interface AirQualityService {
 
-@Slf4j
-@Service
-public class AirQualityService {
+    Stations getStations();
 
-    private SensorThingsService service;
+    org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AirQualityService.class);
 
-    public AirQualityService(PropertiesConfig propertiesConfig) {
-        try {
-            URL serviceEndpoint = new URL(propertiesConfig.getFrostServiceEndpoint());
-            this.service = new SensorThingsService(serviceEndpoint);
-        } catch (MalformedURLException e) {
-            log.error("{}", e.getMessage(), e);
-        }
+    @Nullable
+    default Stations airKoreaResponseToStations(AirKoreaResponseWrapper<StationsResponse> airKoreaResponse) {
+        Stations stations;
+        AirKoreaResponse<StationsResponse> airKoreaStationResponse = airKoreaResponse.getResponse();
+        log.info("====== header : {}", airKoreaStationResponse.getHeader().toString());
+        //log.info("====== body : {}", airKoreaStationResponse.getBody().toString());
+        AirKoreaHeader airKoreaHeader = airKoreaStationResponse.getHeader();
+        if (!airKoreaHeader.ok()) return null;
+        log.info("====== totalCnt : {}", airKoreaStationResponse.getBody().getTotalCount());
+        stations = airKoreaStationResponse.getBody().toStations();
+        log.info("====== stations : {}", stations.toString());
+        return stations;
     }
 
 }

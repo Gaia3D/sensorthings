@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gaia3d.airkorea.dto.AirKoreaResponseWrapper;
 import gaia3d.airkorea.dto.StationsResponse;
+import gaia3d.airquality.application.AirQualityService;
 import gaia3d.airquality.domain.Stations;
 import gaia3d.config.PropertiesConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-public class AirKoreaServiceOpenApi implements AirKoreaService {
+public class AirKoreaServiceOpenApi implements AirQualityService {
 
     private final PropertiesConfig propertiesConfig;
     private final RestTemplate airkoreaRestTemplate;

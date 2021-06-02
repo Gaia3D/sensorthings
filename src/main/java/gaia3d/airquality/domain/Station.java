@@ -1,12 +1,12 @@
 package gaia3d.airquality.domain;
 
-import de.fraunhofer.iosb.ilt.sta.model.FeatureOfInterest;
-import de.fraunhofer.iosb.ilt.sta.model.Id;
-import de.fraunhofer.iosb.ilt.sta.model.Location;
-import de.fraunhofer.iosb.ilt.sta.model.Thing;
+import de.fraunhofer.iosb.ilt.sta.ServiceFailureException;
+import de.fraunhofer.iosb.ilt.sta.model.*;
+import de.fraunhofer.iosb.ilt.sta.model.builder.DatastreamBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.FeatureOfInterestBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.LocationBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.ThingBuilder;
+import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractDatastreamBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractFeatureOfInterestBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.builder.api.AbstractLocationBuilder;
 import lombok.Builder;
@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,9 @@ public class Station {
 
     public static final String LOCATION_DESCRIPTION = "대기질 측정소 위치";
     public static final String FEATURE_OF_INTEREST_DESCRIPTION = "한국환경공단 대기질 측정소";
+
+    private final static ItemDetails itemDetails = Item.generateItemDetails();
+    private final static Map<String, ObservedProperty> observedProperties = Item.getObservedProperties(itemDetails);
 
     // 측정소 명
     private String name;
@@ -46,13 +50,23 @@ public class Station {
     // Feature
     private Feature feature;
 
-    private Map<String, Object> toProperties() {
+    private void createFeature() {
+        Feature feature = new Feature();
+        Point point = this.position.toPoint();
+        feature.setId(this.name);
+        feature.setGeometry(point);
+        this.feature = feature;
+    }
+
+    private Map<String, Object> createProperties() {
         Map<String, Object> resultMap = new HashMap<>();
         Field[] fields = this.getClass().getDeclaredFields();
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                if (field.getType().equals(Logger.class) || Modifier.isFinal(field.getModifiers())) {
+                int modifiers = field.getModifiers();
+                if (field.getType().equals(Logger.class) ||
+                        (Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers))) {
                     continue;
                 }
                 resultMap.put(field.getName(), field.get(this));
@@ -67,6 +81,7 @@ public class Station {
         Id locationId = null;
         if (location != null) {
             locationId = location.getId();
+            location = null;
         }
         createFeature();
         return LocationBuilder.builder()
@@ -82,12 +97,13 @@ public class Station {
         Id thingId = null;
         if (thing != null) {
             thingId = thing.getId();
+            thing = null;
         }
         return ThingBuilder.builder()
                 .id(thingId)
                 .name(this.name)
                 .description(networkName)
-                .properties(toProperties())
+                .properties(createProperties())
                 .locations(locations)
                 .build();
     }
@@ -96,12 +112,11 @@ public class Station {
         Id foiId = null;
         if (foi != null) {
             foiId = foi.getId();
+            foi = null;
         }
-
         if (this.feature == null) {
             createFeature();
         }
-
         return FeatureOfInterestBuilder.builder()
                 .id(foiId)
                 .name(this.name)
@@ -111,12 +126,72 @@ public class Station {
                 .build();
     }
 
-    private void createFeature() {
-        Feature feature = new Feature();
-        Point point = this.position.toPoint();
-        feature.setId(this.name);
-        feature.setGeometry(point);
-        this.feature = feature;
+    private Datastream toDatastream(Item item) {
+
+        String itemName = item.getName();
+        ItemDetail detail = itemDetails.getItemDetail(item);
+        ObservedProperty observedProperty = observedProperties.get(itemName);
+
+        return DatastreamBuilder.builder()
+                .id(null)
+                .name(itemName)
+                .description(detail.getDescription())
+                .observationType(AbstractDatastreamBuilder.ValueCode.OM_Observation)
+                .unitOfMeasurement(detail.getMeasureUnit().toUnitOfMeasurement())
+                .sensor(detail.toSensor(null))
+                .observedProperty(observedProperty)
+                .thing(this.toThingEntity(null, List.of(this.toLocationEntity(null))))
+                .build();
+
+    }
+
+    private Datastream updateDatastream(Item item, Datastream datastream) {
+
+        String itemName = item.getName();
+        ItemDetail detail = itemDetails.getItemDetail(item);
+        ObservedProperty observedProperty = observedProperties.get(itemName);
+
+        Datastream ds = null;
+        try {
+            Id datastreamId = datastream.getId();
+            Sensor sensor = datastream.getSensor();
+            Thing thing = datastream.getThing();
+
+            ds = DatastreamBuilder.builder()
+                    .id(datastreamId)
+                    .name(itemName)
+                    .description(detail.getDescription())
+                    .observationType(AbstractDatastreamBuilder.ValueCode.OM_Observation)
+                    .unitOfMeasurement(detail.getMeasureUnit().toUnitOfMeasurement())
+                    .sensor(detail.toSensor(sensor))
+                    .observedProperty(observedProperty)
+                    .thing(this.toThingEntity(thing, thing.getLocations().toList()))
+                    .build();
+
+        } catch (ServiceFailureException e) {
+            e.printStackTrace();
+        }
+        return ds;
+    }
+
+    public List<Datastream> toDatastreamsEntity(List<Datastream> datastreams) {
+        List<Datastream> result = new ArrayList<>();
+        for (Item item : items) {
+            String itemName = item.getName();
+            // 기존 datastream 업데이트
+            if (datastreams.size() > 0) {
+                for (Datastream datastream : datastreams) {
+                    if (datastream != null && datastream.getName().equals(itemName)) {
+                        Datastream ds = this.updateDatastream(item, datastream);
+                        if (ds != null) result.add(ds);
+                        datastream = null;
+                    }
+                }
+            }
+            // 새로운 datastream 생성
+            result.add(this.toDatastream(item));
+        }
+        return result;
     }
 
 }
