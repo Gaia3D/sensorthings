@@ -2,7 +2,9 @@ package gaia3d.airquality.domain;
 
 import de.fraunhofer.iosb.ilt.sta.model.builder.ext.UnitOfMeasurementBuilder;
 import de.fraunhofer.iosb.ilt.sta.model.ext.UnitOfMeasurement;
+import lombok.ToString;
 
+@ToString
 public enum MeasureUnit {
 
     UGM3("microgram per cubic meter", "㎍/m³", "https://www.eea.europa.eu/themes/air/air-quality/resources/glossary/g-m3"),

@@ -4,6 +4,7 @@ import de.fraunhofer.iosb.ilt.sta.model.Id;
 import de.fraunhofer.iosb.ilt.sta.model.Sensor;
 import de.fraunhofer.iosb.ilt.sta.model.builder.SensorBuilder;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 @Builder
+@EqualsAndHashCode
 public class ItemDetail {
 
     private final Item item;

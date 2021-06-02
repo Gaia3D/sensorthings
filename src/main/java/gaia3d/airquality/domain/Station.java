@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -31,8 +32,10 @@ public class Station {
     public static final String LOCATION_DESCRIPTION = "대기질 측정소 위치";
     public static final String FEATURE_OF_INTEREST_DESCRIPTION = "한국환경공단 대기질 측정소";
 
-    private final static ItemDetails itemDetails = Item.generateItemDetails();
-    private final static Map<String, ObservedProperty> observedProperties = Item.getObservedProperties(itemDetails);
+    // 측정 항목 상세
+    private static final ItemDetails itemDetails = Item.generateItemDetails();
+    // AirQuality ObservedProperty Map
+    private static final Map<String, ObservedProperty> observedProperties = Item.getObservedProperties(itemDetails);
 
     // 측정소 명
     private String name;
@@ -47,7 +50,7 @@ public class Station {
     // 주소
     private String addr;
 
-    // Feature
+    // Feature : 한번만 선언하여 Location, FeatureOfInterest 를 만들때 공통으로 사용하기 위해..
     private Feature feature;
 
     private void createFeature() {
@@ -81,7 +84,7 @@ public class Station {
         Id locationId = null;
         if (location != null) {
             locationId = location.getId();
-            location = null;
+            location = null;    // 강제 메모리 해제
         }
         createFeature();
         return LocationBuilder.builder()
@@ -97,7 +100,7 @@ public class Station {
         Id thingId = null;
         if (thing != null) {
             thingId = thing.getId();
-            thing = null;
+            thing = null;       // 강제 메모리 해제
         }
         return ThingBuilder.builder()
                 .id(thingId)
@@ -112,7 +115,7 @@ public class Station {
         Id foiId = null;
         if (foi != null) {
             foiId = foi.getId();
-            foi = null;
+            foi = null;     // 강제 메모리 해제
         }
         if (this.feature == null) {
             createFeature();
@@ -126,7 +129,7 @@ public class Station {
                 .build();
     }
 
-    private Datastream toDatastream(Item item) {
+    public Datastream toDatastream(Item item) {
 
         String itemName = item.getName();
         ItemDetail detail = itemDetails.getItemDetail(item);
@@ -145,7 +148,7 @@ public class Station {
 
     }
 
-    private Datastream updateDatastream(Item item, Datastream datastream) {
+    public Datastream updateDatastream(Item item, Datastream datastream) {
 
         String itemName = item.getName();
         ItemDetail detail = itemDetails.getItemDetail(item);
@@ -176,20 +179,36 @@ public class Station {
 
     public List<Datastream> toDatastreamsEntity(List<Datastream> datastreams) {
         List<Datastream> result = new ArrayList<>();
-        for (Item item : items) {
-            String itemName = item.getName();
-            // 기존 datastream 업데이트
-            if (datastreams.size() > 0) {
+        if (datastreams.size() <= 0) {
+            // 기존 datastreams 가 없을 경우
+            // 새로운 datastream 생성
+            result = items.stream()
+                    .map(this::toDatastream)
+                    .collect(Collectors.toList());
+        } else {
+            // 기존 datastreams 가 있을 경우
+            // TODO : for loop을 2번 수행. 개선 필요.
+            List<Item> duplicated = new ArrayList<>();
+            for (Item item : items) {
+                String itemName = item.getName();
                 for (Datastream datastream : datastreams) {
                     if (datastream != null && datastream.getName().equals(itemName)) {
+                        duplicated.add(item);
+                        // 기존 datastream 업데이트
                         Datastream ds = this.updateDatastream(item, datastream);
                         if (ds != null) result.add(ds);
                         datastream = null;
+                        break;
                     }
                 }
             }
-            // 새로운 datastream 생성
-            result.add(this.toDatastream(item));
+            List<Item> uniques = new ArrayList<>(items);
+            uniques.removeAll(duplicated);     // 중복 제거
+            // 기존 datastream에 없는 새로운 datastream 생성
+            List<Datastream> additional = uniques.stream()
+                    .map(this::toDatastream)
+                    .collect(Collectors.toList());
+            result.addAll(additional);
         }
         return result;
     }
