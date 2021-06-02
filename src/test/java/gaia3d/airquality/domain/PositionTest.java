@@ -4,10 +4,7 @@ import org.geojson.LngLatAlt;
 import org.geojson.Point;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class PositionTest {
 

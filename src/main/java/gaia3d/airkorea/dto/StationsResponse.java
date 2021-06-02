@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 @Data
 public class StationsResponse {
+
     private int totalCount;
     private List<StationResponse> items;
     private int pageNo;

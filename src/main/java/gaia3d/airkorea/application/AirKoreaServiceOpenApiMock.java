@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gaia3d.airkorea.dto.AirKoreaResponseWrapper;
 import gaia3d.airkorea.dto.StationsResponse;
+import gaia3d.airquality.application.AirQualityService;
 import gaia3d.airquality.domain.Stations;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 
 @Slf4j
 @Service
-public class AirKoreaServiceOpenApiMock implements AirKoreaService {
+public class AirKoreaServiceOpenApiMock implements AirQualityService {
 
     private final ObjectMapper objectMapper;
 

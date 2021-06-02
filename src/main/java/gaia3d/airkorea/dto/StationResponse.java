@@ -25,6 +25,7 @@ public class StationResponse {
 
     public Station toStation() {
 
+        // build position
         Position position = new Position(this.dmX, this.dmY);
 
         // build observedProperties
