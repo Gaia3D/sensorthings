@@ -10,6 +10,7 @@ import gaia3d.airquality.domain.Stations;
 import gaia3d.config.PropertiesConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -22,7 +23,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-public class AirKoreaServiceOpenApi implements AirQualityService {
+public class AirKoreaServiceOpenApi implements AirKoreaService {
 
     private final PropertiesConfig propertiesConfig;
     private final RestTemplate airkoreaRestTemplate;
@@ -45,7 +46,7 @@ public class AirKoreaServiceOpenApi implements AirQualityService {
                 .queryParam("returnType", "json")
                 .build(true)
                 .toUri();
-        log.info("====== url : {}", uri.toString());
+        log.info("====== url : {}", uri);
         ResponseEntity<?> response = airkoreaRestTemplate.getForEntity(uri, String.class);
         return responseToStations(response);
     }

@@ -7,6 +7,7 @@ import gaia3d.airkorea.dto.StationsResponse;
 import gaia3d.airquality.application.AirQualityService;
 import gaia3d.airquality.domain.Stations;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ import java.nio.file.Paths;
 
 @Slf4j
 @Service
-public class AirKoreaServiceOpenApiMock implements AirQualityService {
+public class AirKoreaServiceOpenApiMock implements AirKoreaService {
 
     private final ObjectMapper objectMapper;
 
@@ -31,7 +32,7 @@ public class AirKoreaServiceOpenApiMock implements AirQualityService {
         Stations stations;
         try {
             Path path = Paths.get(resource.getURI());
-            log.info("====== file path : {}", path.toAbsolutePath().toString());
+            log.info("====== file path : {}", path.toAbsolutePath());
             AirKoreaResponseWrapper<StationsResponse> airKoreaResponse = objectMapper.readValue(path.toFile(), new TypeReference<>() {});
             stations = airKoreaResponseToStations(airKoreaResponse);
             if (stations == null) return null;

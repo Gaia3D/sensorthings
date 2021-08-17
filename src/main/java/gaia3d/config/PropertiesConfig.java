@@ -14,6 +14,9 @@ public class PropertiesConfig {
     @Value("${sensorthings.profile}")
     private Profile profile;
 
+    @Value("${sensorthings.mock.enable}")
+    private boolean mockEnable;
+
     @Value("${airkorea.service.url}")
     private String airkoreaServiceUrl;
     @Value("${airkorea.auth.key}")
